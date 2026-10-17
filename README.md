@@ -1,206 +1,266 @@
-# Project 4: Supply Chain Demand Forecasting
+# Supply Chain Demand Forecasting Web Application
 
-video Link:https://drive.google.com/file/d/1Q9pdL_sZJtMwKqSw26OBli5iPO8yyOly/view?usp=sharing
-Basic/intermediate-level implementation of "Project 4: Supply Chain
-Demand Forecasting" from the internship projects guide.
+An ML-powered web application that forecasts future product demand using historical supply chain data. The project combines machine learning, an interactive dashboard, and model explainability to help users understand demand trends and make more informed inventory planning decisions.
 
-Forecasts product demand per SKU using **XGBoost** with lag /
-rolling-window / calendar feature engineering, evaluated with **WMAPE**
-(Weighted Mean Absolute Percentage Error), and explained with **SHAP**
-feature importance. Ships with two datasets — a real one (default) and
-a synthetic one — see below.
+## Table of Contents
 
-## What's implemented
+- [Overview](#-overview)
+- [Problem Statement](#-problem-statement)
+- [Key Features](#-key-features)
+- [Technology Stack](#-technology-stack)
+- [System Architecture](#-system-architecture)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [Model and Evaluation](#-model-and-evaluation)
+- [Demo](#-demo)
+- [Challenges and Learnings](#-challenges-and-learnings)
+- [Future Improvements](#-future-improvements)
 
-- **Data**:
-  - `data/download_real_data.py` (default/recommended) downloads
-    **real** sales figures for 2 SKUs from a public GitHub-hosted
-    dataset repository — see **"About the real dataset"** below for
-    exactly what's in it and its limitations.
-  - `data/generate_data.py` procedurally generates a synthetic
-    multi-SKU **daily** sales dataset (20 SKUs across 4 categories, 2
-    years of daily history) with the guide's ingredients: trend,
-    weekly + annual seasonality, promotions, holidays, price, and
-    noise. Kept as an alternative — see **"Using the synthetic
-    dataset"** below.
-- **Model**: `model/train.py` — feature engineering (lags, rolling
-  mean/std, calendar features) feeding an `XGBRegressor`, evaluated
-  per-SKU on a held-out time-based split against a naive "last period"
-  baseline. A single `--freq {daily,monthly}` flag switches between
-  the two datasets' feature sets (see **"How daily vs. monthly
-  works"**) — same script, same backend, no other code changes.
-- **Explainability**: SHAP `TreeExplainer` computes global mean
-  |SHAP value| per feature, exposed via `/feature-importance`.
-- **Backend**: `backend/app.py` — FastAPI service with `/forecast`
-  (multi-period iterative forecast for a given SKU), `/skus`,
-  `/feature-importance`, and `/health`. It reads the frequency/feature
-  config that `train.py` saves, so it works unchanged against either
-  dataset.
-- **Frontend**: `frontend/` — a plain HTML/CSS/JS page with a SKU
-  selector, a horizon slider (labeled in days or months depending on
-  which model is loaded), a Chart.js line chart (actuals vs forecast),
-  and a feature-importance bar chart. Served directly by the FastAPI
-  backend.
+## Overview
 
-## About the real dataset — please read before presenting this
+Supply Chain Demand Forecasting is a machine learning web application designed to analyze historical demand data and generate forecasts that support inventory and supply chain planning.
 
-The guide names M5/Walmart and Kaggle's Favorita dataset — both need a
-Kaggle account, and in this development environment, network access
-was restricted to GitHub and package registries (Kaggle, Hugging Face,
-UCI, etc. weren't reachable). So this project uses two **real, public**
-monthly sales series that are hosted directly on GitHub, from a widely
-used statistics/forecasting teaching repository:
+The application uses an **XGBoost forecasting model** and a **FastAPI backend** to provide predictions through a web-based dashboard. Interactive visualizations help users explore demand patterns, while SHAP explainability provides insight into the features influencing model predictions.
 
-- **Shampoo Sales** — 3 years of real monthly sales for a shampoo
-  company (36 data points).
-- **Quebec Car Sales** — real monthly car sales in Quebec, Jan 1960 -
-  Dec 1968 (108 data points).
+The project demonstrates how machine learning models can be integrated into a web application to support practical business decision-making.
 
-Honest caveats:
+## Problem Statement
 
-- Both series are **monthly**, not daily — there's no real day-level
-  retail dataset reachable from here, so `train.py` switches its whole
-  feature set (lags of 1/2/3/6/12 months, 3/6/12-month rolling stats,
-  month/quarter calendar features) when given `--freq monthly`, instead
-  of the daily lag/day-of-week/promo/price features used for the
-  synthetic dataset.
-- There are only **2 real series** here, not the guide's 500+ SKUs, and
-  they're real sales figures for two unrelated products (a shampoo
-  brand and a car market) pressed into this project's "multi-SKU"
-  shape — not two SKUs from the same retailer.
-- No price, promotion, or holiday data exists for these series, so
-  those features simply aren't used when training on real data (you'll
-  see a shorter feature list in the training output).
-- With only 36-108 data points per series, WMAPE numbers here are
-  noisier than they'd be on a large multi-SKU retail dataset — treat
-  them as representative of "a small real dataset," not as what a full
-  M5/Favorita-scale run would give you.
+Uncertain product demand makes inventory planning difficult. Businesses may experience stock shortages when demand is underestimated or excess inventory when demand is overestimated.
 
-Measured result on this real data: **14.2% WMAPE** vs. a **20.2%**
-naive baseline (29.8% improvement) — within the guide's 15-20% target
-range, though on a much smaller/simpler dataset than intended.
+Analyzing historical demand and generating forecasts can help businesses make better-informed decisions about inventory levels and future resource requirements.
 
-If you get the chance to download a real daily multi-SKU dataset
-yourself (e.g. Kaggle's "Store Item Demand Forecasting Challenge" or
-M5), see **"Using a larger real daily dataset"** below — it's a
-one-command swap back to the richer `daily` feature set already built
-for the synthetic data.
+## Key Features
 
-## Results
+- **Demand Forecasting:** Uses a trained XGBoost model to generate demand predictions.
+- **Interactive Dashboard:** Displays forecasting information through a browser-based interface.
+- **Demand Visualization:** Uses Chart.js for interactive charts.
+- **Model Explainability:** Uses SHAP to help explain the factors influencing model predictions.
+- **Historical Data Processing:** Includes datasets and scripts for preparing and generating demand data.
+- **Saved Model Artifacts:** Stores the trained model and supporting evaluation and metadata files.
+- **Web API:** Uses FastAPI to connect the forecasting functionality with the frontend.
 
-| Dataset | Frequency | Test WMAPE | Baseline WMAPE | Improvement |
-|---|---|---|---|---|
-| Real (Shampoo Sales + Quebec Car Sales) | monthly | 14.2% | 20.2% | 29.8% |
-| Synthetic (20 SKUs, procedurally generated) | daily | 9.2% | 26.1% | 64.8% |
+## Technology Stack
 
-Numbers shift a little each time you retrain (small dataset, random
-seeds) — treat these as representative, not exact.
+| Component | Technologies |
+|---|---|
+| Programming Language | Python, JavaScript |
+| Machine Learning | XGBoost |
+| Data Processing | Pandas, NumPy |
+| Model Explainability | SHAP |
+| Backend | FastAPI |
+| Frontend | HTML5, CSS3, JavaScript |
+| Visualization | Chart.js |
+| Model Storage | Joblib |
+| Development Tools | VS Code, Git, GitHub |
 
-## Setup & run (real dataset — default)
+## System Architecture
+
+The application follows a web-based machine learning architecture.
+
+```mermaid
+flowchart TD
+    A[Historical Demand Data] --> B[Data Processing]
+    B --> C[Trained XGBoost Model]
+    C --> D[FastAPI Backend]
+    E[User] --> F[Web Dashboard]
+    F --> D
+    D --> C
+    C --> G[Demand Forecast]
+    G --> D
+    D --> F
+    F --> H[Charts and Results]
+    C --> I[SHAP Explainability]
+```
+
+### Workflow
+
+1. Historical demand data is stored in the project's data directory.
+2. Data preparation and training scripts support the forecasting workflow.
+3. The trained model is saved as a model artifact.
+4. FastAPI provides the backend interface for the web application.
+5. The frontend communicates with the backend to display forecasting results.
+6. Chart.js visualizes the available demand and forecasting information.
+7. SHAP helps explain the influence of relevant features on predictions.
+
+## Project Structure
+
+```text
+Project_Supply_Chain_Forecasting/
+│
+├── backend/
+│   └── app.py
+│
+├── data/
+│   ├── demand_data.csv
+│   ├── demand_data_real.csv
+│   ├── download_real_data.py
+│   └── generate_data.py
+│
+├── frontend/
+│   ├── index.html
+│   ├── style.css
+│   ├── script.js
+│   └── chart.min.js
+│
+├── model/
+│   ├── train.py
+│   └── artifacts/
+│       ├── model.joblib
+│       ├── metrics.json
+│       ├── history_tail.csv
+│       └── sku_categories.csv
+│
+├── requirements.txt
+├── README.md
+├── .gitignore
+└── Supply_Chain_Forecast_web.mp4
+```
+
+### Important Files
+
+- `backend/app.py` — FastAPI application and backend functionality.
+- `frontend/index.html` — Dashboard structure.
+- `frontend/style.css` — Dashboard styling and layout.
+- `frontend/script.js` — Frontend interactions and API communication.
+- `frontend/chart.min.js` — Chart.js library used for visualization.
+- `data/` — Demand datasets and data preparation scripts.
+- `model/train.py` — Model training workflow.
+- `model/artifacts/model.joblib` — Saved forecasting model.
+- `model/artifacts/metrics.json` — Stored model evaluation information.
+- `requirements.txt` — Python dependency list.
+
+## Getting Started
+
+Follow these steps to run the project locally.
+
+### Prerequisites
+
+- Python installed on your system.
+- Git installed on your system.
+- Visual Studio Code or another code editor.
+- A terminal for executing commands.
+
+### 1. Clone the Repository
 
 ```bash
-cd project4_supply_chain_forecasting
-pip install -r requirements.txt
-
-# 1. Download the real dataset (2 real monthly SKUs)
-python data/download_real_data.py
-
-# 2. Train the model (~5-10s on CPU)
-python model/train.py --data ../data/demand_data_real.csv --freq monthly --out ./artifacts
-
-# 3. Start the API + frontend
-cd backend
-uvicorn app:app --reload --port 8004
+git clone https://github.com/Priyadharshini-sk06/Supply_Chain_Forecasting_Web_project-III.git
+cd Supply_Chain_Forecasting_Web_project-III
 ```
 
-Then open **http://localhost:8004**, pick a SKU (`SHAMPOO-CO` or
-`CAR-SALES-QC`), set a horizon (in months), and click "Forecast".
+### 2. Create a Virtual Environment
 
-### Using the synthetic dataset instead
+**Windows PowerShell:**
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+If PowerShell blocks activation, use Command Prompt instead:
+
+```bat
+.venv\Scripts\activate.bat
+```
+
+### 3. Install Dependencies
 
 ```bash
-python data/generate_data.py --n-skus 20 --days 730
-python model/train.py --data ../data/demand_data.csv --freq daily --out ./artifacts
+python -m pip install -r requirements.txt
 ```
 
-Both write to the same `model/artifacts/` folder the backend reads
-from, so whichever you trained most recently is what `/forecast`
-serves — no other changes needed.
+### 4. Start the Backend
 
-### API
-
-```
-GET /health                                -> status, freq ("daily"|"monthly"), held-out test metrics
-GET /skus                                  -> [{"sku_id": "SHAMPOO-CO", "category": "Personal Care"}, ...]
-GET /feature-importance                    -> top-10 SHAP feature importances
-GET /forecast?sku_id=SHAMPOO-CO&horizon=6  -> {
-      "sku_id": "SHAMPOO-CO", "category": "Personal Care", "freq": "monthly", "horizon": 6,
-      "recent_actuals": [{"date": "2021-07", "sales": 812.0}, ...],
-      "forecast": [{"date": "2022-01", "forecast": 1004.5}, ...],
-      "model_wmape_pct": 14.2
-    }
-```
-
-The forecast is generated iteratively, one period at a time: each
-predicted value is fed back in as a "known" past value so lag/rolling
-features stay valid further into the horizon (standard recursive
-multi-step forecasting). For the daily/synthetic model, future
-`promo_flag` is assumed 0 unless you extend the API to accept a promo
-calendar, and `is_holiday` is computed from a fixed calendar; the
-monthly/real model has no such fields.
-
-## How daily vs. monthly works
-
-`train.py --freq {daily,monthly}` selects a config (lags, rolling
-windows, calendar columns) and auto-detects whether `price`,
-`promo_flag`, `is_holiday` exist in the input CSV — using them as
-features only if present. That full config is saved into
-`model/artifacts/metrics.json`, and `backend/app.py` reads it back
-rather than hardcoding assumptions, so the same backend code serves
-either model without modification.
-
-## Using a larger real daily dataset (recommended if grading weighs accuracy/scale)
-
-Any CSV with these columns works with `--freq daily` and zero code
-changes:
-
-```
-date, sku_id, category, sales, price, promo_flag, is_holiday
-```
-
-(`price`, `promo_flag`, `is_holiday` are optional — omit columns you
-don't have and they're simply not used as features.)
-
-1. Download Kaggle's "Store Item Demand Forecasting Challenge" dataset
-   (or M5) — free account, a couple of minutes.
-2. Reshape/rename its columns to match the layout above (a short
-   pandas script, or ask for one).
-3. Train against it directly:
+From the project root, run:
 
 ```bash
-python model/train.py --data /path/to/your_sales_history.csv --freq daily --out ./artifacts
+python -m uvicorn backend.app:app --reload
 ```
 
-With a real multi-SKU daily dataset you'd get both the guide's
-intended data shape and (typically) a lower/more stable WMAPE than
-either dataset shipped here.
+If the application uses a different import configuration, use the entry point specified by the project's backend setup.
 
-## Architecture
+### 5. Open the Application
 
-```
-Browser (frontend/, Chart.js) --HTTP--> FastAPI (backend/app.py)
-                                            |-- loads XGBoost model (model/artifacts/model.joblib)
-                                            |-- loads per-SKU history tail for feature building
-                                            |-- loads freq/feature config + SHAP importances (model/artifacts/metrics.json)
-```
+Open the local URL configured by the FastAPI application in your browser. With the standard Uvicorn configuration above, the backend is available at:
 
-## How this maps to the guide's upgrade path
+`http://127.0.0.1:8000`
 
-- **Basic Level**: Random Forest / feature engineering — superseded
-  directly by the XGBoost model below.
-- **Intermediate Level**: XGBoost for tabular demand forecasting, WMAPE
-  evaluation — done.
-- **Advanced/SOTA**: Temporal Fusion Transformer, MLOps auto-retraining
-  pipeline, and multi-task/graph-based forecasting are out of scope for
-  this submission's depth — noted as a natural "next step" in the
-  write-up.
+FastAPI's interactive API documentation is commonly available at:
+
+`http://127.0.0.1:8000/docs`
+
+The dashboard and API endpoints depend on the routes configured in `backend/app.py`.
+
+## Model and Evaluation
+
+The project uses XGBoost for demand forecasting and includes saved artifacts to support model evaluation and application execution.
+
+The repository contains:
+
+- A trained model stored in `model/artifacts/model.joblib`.
+- Evaluation information stored in `model/artifacts/metrics.json`.
+- Historical records in `model/artifacts/history_tail.csv`.
+- Product category information in `model/artifacts/sku_categories.csv`.
+
+Model performance should be reported using the actual evaluation results generated by the training workflow.
+
+Useful forecasting evaluation metrics include:
+
+- **MAE (Mean Absolute Error):** Measures the average absolute difference between actual and predicted demand.
+- **RMSE (Root Mean Squared Error):** Penalizes larger prediction errors more strongly.
+
+Only include these metrics as reported results if the training workflow actually calculates them. Add the verified values from `metrics.json` before publishing performance claims.
+
+## Demo
+
+Watch the project demonstration:
+
+[▶️ Supply Chain Forecasting Web Application Demo](./Supply_Chain_Forecast_web.mp4)
+
+The video is included in the repository and demonstrates the application workflow.
+
+## Challenges and Learnings
+
+This project provides practical experience with:
+
+- Integrating a machine learning model into a web application.
+- Building API-based communication between a frontend and backend.
+- Processing historical data for forecasting.
+- Presenting prediction results using interactive charts.
+- Understanding model explainability with SHAP.
+- Organizing a project into separate frontend, backend, data, and model components.
+- Managing dependencies and source code using Git and GitHub.
+
+### Design Decisions
+
+- **FastAPI:** Provides a Python-based API layer for the forecasting application.
+- **XGBoost:** Serves as the demand prediction model.
+- **Chart.js:** Supports interactive visual presentation of forecasting results.
+- **SHAP:** Helps interpret model predictions and feature contributions.
+- **Separate Project Directories:** Keep application code, datasets, and model artifacts organized.
+
+## Future Improvements
+
+Potential extensions include:
+
+- Adding forecast horizon selection.
+- Supporting user-uploaded demand datasets.
+- Comparing multiple forecasting models.
+- Providing downloadable forecasting reports.
+- Adding inventory threshold alerts.
+- Deploying the application to a cloud platform.
+- Improving input validation, testing, and production monitoring.
+
+These are proposed improvements and are not necessarily implemented in the current version.
+
+## Author
+
+**Priyadharshini S K**
+
+B.Tech — Information Technology
+
+[GitHub Profile](https://github.com/Priyadharshini-sk06)
+
+## License
+
+No license has been specified for this project yet. Add an appropriate license file if you intend to distribute the project for reuse.
