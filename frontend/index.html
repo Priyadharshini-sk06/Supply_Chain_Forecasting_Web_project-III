@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f4ec">
+  <title>Supply Chain Intelligence | Demand Forecasting</title>
+  <link rel="stylesheet" href="style.css?v=20261017-ivory-forest-v1">
+  <script src="chart.min.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="page-header">
+      <div class="brand-mark" aria-hidden="true">SC</div>
+      <div class="header-copy">
+        <p class="eyebrow">SUPPLY CHAIN INTELLIGENCE</p>
+        <h1>Demand forecasting</h1>
+        <p class="subtitle">Understand demand patterns, explore future projections, and see what drives your model.</p>
+      </div>
+      <div class="header-status"><span class="status-dot"></span> Forecast workspace</div>
+    </header>
+    <main>
+      <section class="controls-card" aria-label="Forecast controls">
+        <div class="controls-heading"><div><p class="section-kicker">FORECAST SETUP</p><h2>Configure your forecast</h2></div><span class="setup-icon" aria-hidden="true">↗</span></div>
+        <div class="controls-fields">
+          <div class="field sku-field"><label for="skuSelect">Product / SKU</label><select id="skuSelect"></select></div>
+          <div class="field horizon-field"><div class="range-label-row"><label for="horizonInput">Forecast horizon</label><span class="range-value" id="horizonValue">14 days</span></div><input type="range" id="horizonInput" min="1" max="60" value="14"><div class="range-scale"><span>1 day</span><span>60 days</span></div></div>
+          <button id="loadBtn" type="button"><span>Generate forecast</span><span class="button-arrow" aria-hidden="true">→</span></button>
+        </div>
+      </section>
+      <section class="stats-row" id="statsRow" hidden aria-label="Forecast summary">
+        <div class="stat stat-accuracy"><div class="stat-topline"><span class="stat-label">MODEL ACCURACY</span><span class="stat-symbol">%</span></div><div class="stat-value" id="wmapeValue">--</div><p class="stat-footnote">WMAPE · held-out test data</p></div>
+        <div class="stat stat-category"><div class="stat-topline"><span class="stat-label">PRODUCT CATEGORY</span><span class="stat-symbol">◈</span></div><div class="stat-value" id="categoryValue">--</div><p class="stat-footnote">Category associated with selected SKU</p></div>
+      </section>
+      <section class="analysis-grid" aria-label="Forecast analysis">
+        <section class="chart-card"><div class="panel-heading"><div><p class="section-kicker">DEMAND OUTLOOK</p><h2>Actuals vs forecast</h2><p class="panel-subtitle">Historical sales compared with predicted demand.</p></div><span class="panel-tag"><span class="tag-dot"></span> Projection</span></div><div class="chart-container"><canvas id="forecastChart" height="260"></canvas></div></section>
+        <section class="importance-card"><div class="panel-heading"><div><p class="section-kicker">MODEL EXPLAINABILITY</p><h2>Top demand drivers</h2><p class="panel-subtitle">Features with the greatest average impact.</p></div><span class="shap-tag">SHAP</span></div><div id="importanceBars"></div><p class="importance-note">Higher impact indicates a stronger contribution to the model's predictions.</p></section>
+      </section>
+      <section class="error-card" id="errorCard" hidden role="alert"></section>
+    </main>
+    <footer><span class="footer-mark" aria-hidden="true">SC</span><p>Supply Chain Intelligence <span>·</span> Educational demo using a synthetic dataset. Replace with real sales history for production use.</p></footer>
+  </div>
+  <script src="script.js?v=20261017-forecast-v1"></script>
+</body>
+</html>

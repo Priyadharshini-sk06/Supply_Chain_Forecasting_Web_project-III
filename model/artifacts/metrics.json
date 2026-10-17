@@ -1,0 +1,111 @@
+{
+  "metrics": {
+    "wmape_pct": 15.834900321156825,
+    "mae": 1393.4527542114258,
+    "n_train": 108,
+    "n_test": 12,
+    "test_periods": 6,
+    "freq": "monthly",
+    "baseline_wmape_pct": 20.246196445786214,
+    "wmape_improvement_pct": 21.788270880615208
+  },
+  "feature_importance": [
+    [
+      "lag_12",
+      4096.55810546875
+    ],
+    [
+      "lag_1",
+      1246.997802734375
+    ],
+    [
+      "rollmean_12",
+      1189.9512939453125
+    ],
+    [
+      "lag_2",
+      388.8051452636719
+    ],
+    [
+      "month",
+      379.0434265136719
+    ],
+    [
+      "rollstd_6",
+      275.640625
+    ],
+    [
+      "lag_6",
+      165.8334197998047
+    ],
+    [
+      "rollstd_12",
+      124.02127075195312
+    ],
+    [
+      "rollstd_3",
+      97.07373809814453
+    ],
+    [
+      "lag_3",
+      72.89839935302734
+    ],
+    [
+      "rollmean_6",
+      55.77750778198242
+    ],
+    [
+      "rollmean_3",
+      53.7884635925293
+    ],
+    [
+      "quarter",
+      3.296170473098755
+    ],
+    [
+      "sku_code",
+      0.0
+    ],
+    [
+      "category_code",
+      0.0
+    ]
+  ],
+  "feature_cols": [
+    "lag_1",
+    "lag_2",
+    "lag_3",
+    "lag_6",
+    "lag_12",
+    "rollmean_3",
+    "rollmean_6",
+    "rollmean_12",
+    "rollstd_3",
+    "rollstd_6",
+    "rollstd_12",
+    "month",
+    "quarter",
+    "sku_code",
+    "category_code"
+  ],
+  "config": {
+    "freq": "monthly",
+    "lags": [
+      1,
+      2,
+      3,
+      6,
+      12
+    ],
+    "rolling_windows": [
+      3,
+      6,
+      12
+    ],
+    "calendar_cols": [
+      "month",
+      "quarter"
+    ],
+    "optional_cols_used": []
+  }
+}
